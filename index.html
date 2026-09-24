@@ -1,1520 +1,758 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full bg-slate-50">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Agendamento Inteligente</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js para Dashboard Admin -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0284c7',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Agendamento Inteligente</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen pb-12">
 
-    <!-- Navigation Header -->
-    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <!-- Brand Logo -->
-                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('booking')">
-                    <div class="bg-gradient-to-tr from-brand-600 to-indigo-600 p-2.5 rounded-xl text-white shadow-md">
-                        <i class="fa-solid font-bold fa-scissors text-lg"></i>
-                    </div>
-                    <div>
-                        <span class="font-bold text-lg tracking-tight block leading-none" id="header-store-name">Studio Beauty & Style</span>
-                        <span class="text-[11px] text-slate-400 font-medium">Agendamento Inteligente</span>
-                    </div>
-                </div>
+  <!-- HEADER / NAVEGAÇÃO -->
+  <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-2">
+        <i data-lucide="scissors" class="w-8 h-8 text-amber-300"></i>
+        <h1 class="text-xl font-bold tracking-wide">Barber & Beauty</h1>
+      </div>
+      <nav class="flex gap-2 text-sm font-medium" id="main-nav">
+        <button onclick="showSection('client-booking')" id="nav-booking" class="px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-800 transition flex items-center gap-1.5">
+          <i data-lucide="calendar" class="w-4 h-4"></i> Agendar
+        </button>
+        <button onclick="showSection('client-my-bookings')" id="nav-my-bookings" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-1.5">
+          <i data-lucide="user-check" class="w-4 h-4"></i> Meus Agendamentos
+        </button>
+        <button onclick="showSection('admin-panel')" id="nav-admin" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-1.5">
+          <i data-lucide="lock" class="w-4 h-4"></i> Gerente
+        </button>
+      </nav>
+    </div>
+  </header>
 
-                <!-- Desktop Navigation Links -->
-                <nav class="hidden md:flex items-center space-x-2">
-                    <button onclick="switchTab('booking')" id="nav-booking" class="px-3.5 py-2 rounded-xl text-sm font-medium transition-all bg-brand-600 text-white flex items-center space-x-2 shadow-sm">
-                        <i class="fa-solid fa-calendar-plus"></i>
-                        <span>Novo Agendamento</span>
-                    </button>
-                    <button onclick="switchTab('my-appointments')" id="nav-my-appointments" class="px-3.5 py-2 rounded-xl text-sm font-medium transition-all text-slate-300 hover:text-white hover:bg-slate-800 flex items-center space-x-2">
-                        <i class="fa-solid fa-user-lock"></i>
-                        <span>Meus Agendamentos</span>
-                    </button>
-                    <button onclick="switchTab('services')" id="nav-services" class="px-3.5 py-2 rounded-xl text-sm font-medium transition-all text-slate-300 hover:text-white hover:bg-slate-800 flex items-center space-x-2">
-                        <i class="fa-solid fa-list-check"></i>
-                        <span>Serviços & Tabela</span>
-                    </button>
-                    <button onclick="openShareModal()" id="nav-share" class="px-3.5 py-2 rounded-xl text-sm font-medium transition-all text-emerald-400 hover:text-white hover:bg-slate-800 flex items-center space-x-2 border border-emerald-500/30">
-                        <i class="fa-solid fa-share-nodes"></i>
-                        <span>Divulgar Link</span>
-                    </button>
-                </nav>
+  <main class="max-w-5xl mx-auto px-4 mt-6">
 
-                <!-- Admin Action -->
-                <div class="flex items-center space-x-2">
-                    <button onclick="switchTab('admin')" id="nav-admin" class="px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700 transition flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved text-emerald-400"></i>
-                        <span class="hidden sm:inline">Painel do</span> <span>Gerente</span>
-                    </button>
-                </div>
-            </div>
+    <!-- BANNER DE COMPARTILHAMENTO / LINK PÚBLICO -->
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-indigo-100 text-indigo-600 p-2.5 rounded-lg">
+          <i data-lucide="share-2" class="w-5 h-5"></i>
         </div>
-
-        <!-- Mobile Navigation Footer Bar -->
-        <div class="md:hidden border-t border-slate-800 bg-slate-900 grid grid-cols-4 text-center text-[11px] py-2">
-            <button onclick="switchTab('booking')" id="mob-nav-booking" class="flex flex-col items-center py-1 text-brand-500 font-semibold">
-                <i class="fa-solid fa-calendar-plus text-base mb-1"></i>
-                <span>Agendar</span>
-            </button>
-            <button onclick="switchTab('my-appointments')" id="mob-nav-my-appointments" class="flex flex-col items-center py-1 text-slate-400">
-                <i class="fa-solid fa-user-lock text-base mb-1"></i>
-                <span>Meus Agend.</span>
-            </button>
-            <button onclick="switchTab('services')" id="mob-nav-services" class="flex flex-col items-center py-1 text-slate-400">
-                <i class="fa-solid fa-list-check text-base mb-1"></i>
-                <span>Serviços</span>
-            </button>
-            <button onclick="openShareModal()" id="mob-nav-share" class="flex flex-col items-center py-1 text-emerald-400 font-semibold">
-                <i class="fa-solid fa-share-nodes text-base mb-1"></i>
-                <span>Divulgar</span>
-            </button>
+        <div>
+          <h2 class="text-sm font-bold text-slate-700">Link do Seu Agendamento</h2>
+          <p class="text-xs text-slate-500">Compartilhe no seu Instagram, WhatsApp ou Bio para os clientes agendarem.</p>
         </div>
-    </header>
-
-    <!-- Main Content Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-20 md:mb-10 w-full flex-grow">
-
-        <!-- TAB 1: NOVO AGENDAMENTO (CLIENTE) -->
-        <section id="tab-booking" class="space-y-6">
-            <div class="bg-gradient-to-r from-brand-700 via-brand-600 to-indigo-700 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-                <div class="relative z-10 space-y-2">
-                    <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider backdrop-blur-sm">Agendamento Online</span>
-                    <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight">Escolha seus serviços e horário</h1>
-                    <p class="text-brand-100 text-sm sm:text-base max-w-2xl">O tempo de atendimento é calculado dinamicamente com base nas suas escolhas. Pagamento efetuado na loja após o serviço!</p>
-                </div>
-                <i class="fa-solid fa-calendar-days text-9xl absolute -right-6 -bottom-8 opacity-10 pointer-events-none"></i>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Coluna Principal / Formulários -->
-                <div class="lg:col-span-2 space-y-6">
-                    
-                    <!-- Passo 1: Seleção de Serviços -->
-                    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200">
-                        <div class="flex items-center justify-between mb-4">
-                            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2.5">
-                                <span class="w-8 h-8 rounded-full bg-brand-100 text-brand-700 text-sm font-bold flex items-center justify-center">1</span>
-                                Selecione os Serviços Desejados
-                            </h2>
-                            <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full" id="services-count">0 selecionados</span>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="services-selection-container">
-                            <!-- Injetado por JS -->
-                        </div>
-                    </div>
-
-                    <!-- Passo 2: Seleção de Data e Horário -->
-                    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200">
-                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2.5 mb-4">
-                            <span class="w-8 h-8 rounded-full bg-brand-100 text-brand-700 text-sm font-bold flex items-center justify-center">2</span>
-                            Escolha a Data e Horário Livre
-                        </h2>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Data do Atendimento</label>
-                                <input type="date" id="booking-date" onchange="handleDateChange()" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-semibold text-slate-700">
-                                <span class="text-[11px] text-slate-400 mt-1 block">Atendimento: Segunda a Sábado (09h às 18h)</span>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Duração Total Estimada</label>
-                                <div class="px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-700 flex items-center justify-between">
-                                    <span id="total-duration-display">0 min</span>
-                                    <i class="fa-solid fa-clock text-slate-400"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Grid de Horários Libres -->
-                        <div id="time-slots-wrapper" class="hidden">
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Horários de Início Disponíveis</label>
-                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2" id="time-slots-container">
-                                <!-- Slots injetados via JS -->
-                            </div>
-                            <p class="text-xs text-slate-500 mt-3 flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-info text-brand-600"></i> Horários indisponíveis não possuem janela livre suficiente para completar seus serviços.
-                            </p>
-                        </div>
-                        <div id="time-slots-placeholder" class="text-center py-8 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-sm">
-                            Selecione pelo menos 1 serviço e uma data válida para calcular os horários livres.
-                        </div>
-                    </div>
-
-                    <!-- Passo 3: Dados Pessoais & Senha/PIN -->
-                    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200">
-                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2.5 mb-4">
-                            <span class="w-8 h-8 rounded-full bg-brand-100 text-brand-700 text-sm font-bold flex items-center justify-center">3</span>
-                            Seus Dados & Senha de Segurança
-                        </h2>
-                        
-                        <div id="existing-user-banner" class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 flex items-center gap-2">
-                            <i class="fa-solid fa-user-check text-blue-600 text-base"></i>
-                            <span>Identificamos que seu número já possui cadastro. Digite sua senha para confirmar o novo agendamento.</span>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Nome Completo *</label>
-                                <input type="text" id="client-name" placeholder="Ex: Lucas Ferreira" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">WhatsApp / Celular *</label>
-                                <input type="tel" id="client-phone" oninput="checkExistingPhone()" placeholder="(11) 99999-9999" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Senha/PIN (4 a 6 dígitos) *</label>
-                                <input type="password" id="client-pin" maxlength="6" placeholder="****" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-bold tracking-widest">
-                            </div>
-                        </div>
-                        <span class="text-[11px] text-slate-400 mt-2 block">Essa senha/PIN será usada por você para consultar, remarcar ou cancelar seu horário com total segurança.</span>
-                    </div>
-                </div>
-
-                <!-- Coluna Lateral Resumo Fixo -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 sticky top-20 space-y-4">
-                        <h3 class="text-lg font-bold text-slate-800 border-b pb-3 flex items-center justify-between">
-                            <span>Resumo da Reserva</span>
-                            <i class="fa-solid fa-receipt text-slate-400"></i>
-                        </h3>
-
-                        <!-- Serviços Selecionados -->
-                        <div class="space-y-2.5 max-h-48 overflow-y-auto custom-scrollbar" id="summary-services-list">
-                            <p class="text-xs text-slate-400 italic">Nenhum serviço selecionado ainda.</p>
-                        </div>
-
-                        <div class="border-t border-slate-100 pt-3 space-y-2 text-xs">
-                            <div class="flex justify-between text-slate-600">
-                                <span>Data Prevista:</span>
-                                <span class="font-bold text-slate-800" id="summary-date">--/--/----</span>
-                            </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span>Horário do Início:</span>
-                                <span class="font-bold text-slate-800" id="summary-time">--:--</span>
-                            </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span>Término Estimado:</span>
-                                <span class="font-bold text-slate-800" id="summary-endtime">--:--</span>
-                            </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span>Duração Acumulada:</span>
-                                <span class="font-bold text-slate-800" id="summary-duration">0 min</span>
-                            </div>
-                        </div>
-
-                        <div class="border-t border-slate-200 pt-3 flex justify-between items-center">
-                            <div>
-                                <span class="text-xs text-slate-500 block">Total a Pagar na Loja:</span>
-                                <span class="text-2xl font-black text-brand-600" id="summary-total">R$ 0,00</span>
-                            </div>
-                        </div>
-
-                        <button onclick="submitBooking()" id="btn-confirm-booking" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-brand-500/20 transition duration-200 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>Confirmar Agendamento</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 2: MEUS AGENDAMENTOS (CLIENTE AUTENTICADO) -->
-        <section id="tab-my-appointments" class="hidden space-y-6">
-            
-            <!-- Modal/Form de Login do Cliente -->
-            <div id="client-login-box" class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-5">
-                <div class="text-center space-y-2">
-                    <div class="w-14 h-14 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
-                        <i class="fa-solid fa-user-shield text-2xl"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-slate-800">Acessar Meus Agendamentos</h2>
-                    <p class="text-xs text-slate-500">Digite seu WhatsApp e a Senha/PIN criada no momento do agendamento para acessar seus horários.</p>
-                </div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">WhatsApp / Celular</label>
-                        <input type="tel" id="login-phone" placeholder="(11) 99999-9999" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Senha / PIN (4 a 6 dígitos)</label>
-                        <input type="password" id="login-pin" maxlength="6" placeholder="****" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-bold tracking-widest">
-                    </div>
-                    <button onclick="loginClient()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl transition shadow-md shadow-brand-500/20">
-                        Entrar na Minha Conta
-                    </button>
-                </div>
-            </div>
-
-            <!-- Painel do Cliente Autenticado -->
-            <div id="client-authenticated-panel" class="hidden space-y-6 max-w-4xl mx-auto">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <span class="text-xs text-slate-400 font-semibold uppercase">Sessão Autenticada</span>
-                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                            <span id="logged-client-name">Cliente</span>
-                            <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                        </h2>
-                        <span class="text-xs text-slate-500" id="logged-client-phone">(00) 00000-0000</span>
-                    </div>
-                    <button onclick="logoutClient()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center gap-2">
-                        <i class="fa-solid fa-right-from-bracket"></i> Sair da Conta
-                    </button>
-                </div>
-
-                <div class="space-y-4" id="client-appointments-list">
-                    <!-- Agendamentos do cliente injetados por JS -->
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 3: TABELA DE SERVIÇOS -->
-        <section id="tab-services" class="hidden space-y-6">
-            <div class="text-center max-w-xl mx-auto py-2">
-                <h2 class="text-2xl font-bold text-slate-800">Nossos Serviços e Valores</h2>
-                <p class="text-slate-500 text-sm mt-1">Conheça a lista completa de procedimentos oferecidos pela nossa equipe.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="services-cards-grid">
-                <!-- Cards de serviços injetados via JS -->
-            </div>
-        </section>
-
-        <!-- TAB 4: PAINEL DO GERENTE (ADMIN) -->
-        <section id="tab-admin" class="hidden space-y-6">
-            <!-- Modal de Login Admin -->
-            <div id="admin-login-card" class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <div class="text-center space-y-2">
-                    <div class="w-12 h-12 bg-slate-100 text-slate-700 rounded-2xl flex items-center justify-center mx-auto">
-                        <i class="fa-solid fa-lock text-xl"></i>
-                    </div>
-                    <h2 class="text-xl font-bold text-slate-800">Acesso do Gerente</h2>
-                    <p class="text-xs text-slate-500">Insira a senha mestra para visualizar KPIs e agendamentos.<br><span class="font-mono text-brand-600 font-semibold">(Senha padrão: admin123)</span></p>
-                </div>
-                <div>
-                    <input type="password" id="admin-password" placeholder="Digite a senha..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 mb-3 text-sm">
-                    <button onclick="loginAdmin()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl transition shadow-md">Acessar Painel</button>
-                </div>
-            </div>
-
-            <!-- Conteúdo do Dashboard Admin -->
-            <div id="admin-dashboard-content" class="hidden space-y-8">
-                <!-- Cabeçalho Admin -->
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200 gap-4">
-                    <div>
-                        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                            <span>Painel de Gestão da Loja</span>
-                            <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Ao Vivo</span>
-                        </h2>
-                        <p class="text-xs text-slate-500 mt-1">Acompanhe faturamento, métricas e gerencie a agenda em tempo real.</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="openShareModal()" class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl transition flex items-center gap-2 border border-emerald-200">
-                            <i class="fa-solid fa-share-nodes"></i> Divulgar Link
-                        </button>
-                        <button onclick="logoutAdmin()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl transition flex items-center gap-1">
-                            <i class="fa-solid fa-right-from-bracket"></i> Sair
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Cards KPI Faturamento -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-500 uppercase">Faturamento Hoje</span>
-                            <div class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-dollar-sign"></i></div>
-                        </div>
-                        <p class="text-2xl font-black text-slate-800 mt-2" id="kpi-today-rev">R$ 0,00</p>
-                        <span class="text-xs text-slate-400" id="kpi-today-count">0 atendimentos</span>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-500 uppercase">Esta Semana</span>
-                            <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-chart-line"></i></div>
-                        </div>
-                        <p class="text-2xl font-black text-slate-800 mt-2" id="kpi-week-rev">R$ 0,00</p>
-                        <span class="text-xs text-slate-400" id="kpi-week-count">0 atendimentos</span>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-500 uppercase">Este Mês</span>
-                            <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-calendar-days"></i></div>
-                        </div>
-                        <p class="text-2xl font-black text-slate-800 mt-2" id="kpi-month-rev">R$ 0,00</p>
-                        <span class="text-xs text-slate-400" id="kpi-month-count">0 atendimentos</span>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-500 uppercase">Cancelamentos</span>
-                            <div class="w-8 h-8 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-ban"></i></div>
-                        </div>
-                        <p class="text-2xl font-black text-slate-800 mt-2" id="kpi-cancelled-count">0</p>
-                        <span class="text-xs text-rose-500 font-medium">Horários devolvidos</span>
-                    </div>
-                </div>
-
-                <!-- Gráficos de Vendas & Preferências -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-chart-column text-brand-600"></i> Evolução Diária de Atendimentos
-                        </h3>
-                        <div class="h-64 relative w-full">
-                            <canvas id="chart-appointments-weekly"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-chart-pie text-brand-600"></i> Distribuição de Serviços
-                        </h3>
-                        <div class="h-64 relative w-full flex items-center justify-center">
-                            <canvas id="chart-popular-services"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabela de Gestão de Agenda -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-800">Gestão de Agendamentos</h3>
-                            <p class="text-xs text-slate-500">Acompanhe e confirme os clientes marcados</p>
-                        </div>
-                        <div class="flex gap-2 w-full sm:w-auto">
-                            <input type="date" id="admin-filter-date" onchange="renderAdminAppointmentsTable()" class="px-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl font-medium">
-                            <select id="admin-filter-status" onchange="renderAdminAppointmentsTable()" class="px-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl font-medium">
-                                <option value="ALL">Todos os Status</option>
-                                <option value="Confirmado">Confirmados</option>
-                                <option value="Concluído">Concluídos</option>
-                                <option value="Cancelado">Cancelados</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold tracking-wider">
-                                    <th class="py-3.5 px-4">Cliente</th>
-                                    <th class="py-3.5 px-4">Data & Horário</th>
-                                    <th class="py-3.5 px-4">Serviços</th>
-                                    <th class="py-3.5 px-4">Total</th>
-                                    <th class="py-3.5 px-4">Status</th>
-                                    <th class="py-3.5 px-4 text-right">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-table-body" class="divide-y divide-slate-100 text-sm">
-                                <!-- Linhas via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Modal de Compartilhamento do Link -->
-    <div id="share-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
-            <div class="flex items-center justify-between border-b pb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center font-bold">
-                        <i class="fa-solid fa-share-nodes"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-base font-bold text-slate-800">Seu Link de Agendamento</h3>
-                        <p class="text-xs text-slate-400">Divulgue para os clientes marcarem horários</p>
-                    </div>
-                </div>
-                <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <div class="space-y-3">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Link Oficial do Site</label>
-                <div class="flex items-center gap-2">
-                    <input type="text" id="share-link-input" readonly class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-xs font-mono text-slate-700 select-all font-semibold">
-                    <button onclick="copySiteLink()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-copy"></i> Copiar
-                    </button>
-                </div>
-            </div>
-
-            <div class="border-t pt-4 space-y-2">
-                <span class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Compartilhar Direto</span>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="shareToWhatsApp()" class="p-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-200 text-xs font-bold transition flex items-center justify-center gap-2">
-                        <i class="fa-brands fa-whatsapp text-lg text-emerald-600"></i> WhatsApp
-                    </button>
-                    <button onclick="copySiteLink()" class="p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-xl border border-indigo-200 text-xs font-bold transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-link text-lg text-indigo-600"></i> Copiar Link
-                    </button>
-                </div>
-            </div>
-
-            <p class="text-[11px] text-slate-400 text-center">Coloque este link na bio do seu Instagram, status do WhatsApp ou envie direto aos clientes.</p>
-        </div>
+      </div>
+      <div class="flex items-center gap-2 w-full md:w-auto">
+        <input type="text" id="share-link-input" readonly class="bg-slate-50 border border-slate-300 text-slate-600 text-xs rounded-lg p-2.5 w-full md:w-64 focus:outline-none">
+        <button onclick="copyShareLink()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2.5 rounded-lg font-semibold flex items-center gap-1 shrink-0 transition">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
+        </button>
+      </div>
     </div>
 
-    <!-- Modal de Reagendamento (Cliente) -->
-    <div id="reschedule-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-week text-brand-600"></i> Trocar Horário de Atendimento
-                </h3>
-                <button onclick="closeRescheduleModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
+    <!-- TELA DE LOGIN/CADASTRO INICIAL DO CLIENTE -->
+    <section id="sec-client-auth" class="max-w-md mx-auto bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+      <div class="text-center mb-6">
+        <div class="bg-indigo-100 text-indigo-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+          <i data-lucide="user" class="w-6 h-6"></i>
+        </div>
+        <h2 class="text-xl font-bold text-slate-800" id="auth-title">Acesse sua Conta</h2>
+        <p class="text-xs text-slate-500" id="auth-subtitle">Informe seu WhatsApp e PIN para continuar.</p>
+      </div>
 
-            <div id="reschedule-details" class="text-xs bg-slate-50 p-3.5 rounded-xl space-y-1 text-slate-600 border border-slate-100">
-                <!-- Informações do agendamento atual -->
-            </div>
+      <!-- TABS LOGIN / REGISTRO -->
+      <div class="flex border-b border-slate-200 mb-6 text-sm font-bold">
+        <button onclick="switchAuthTab('login')" id="tab-btn-login" class="w-1/2 py-2 border-b-2 border-indigo-600 text-indigo-600">Entrar</button>
+        <button onclick="switchAuthTab('register')" id="tab-btn-register" class="w-1/2 py-2 text-slate-400 hover:text-slate-600">Criar Conta</button>
+      </div>
 
+      <!-- FORMULARIO DE LOGIN -->
+      <form id="form-login" onsubmit="handleAuthLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">WhatsApp / Telefone</label>
+          <input type="tel" id="login-phone" required placeholder="(00) 00000-0000" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Senha / PIN (4 dígitos)</label>
+          <input type="password" id="login-pin" required placeholder="Digite sua senha" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition shadow-md shadow-indigo-100">
+          Entrar e Agendar
+        </button>
+      </form>
+
+      <!-- FORMULARIO DE REGISTRO -->
+      <form id="form-register" onsubmit="handleAuthRegister(event)" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Completo</label>
+          <input type="text" id="reg-name" required placeholder="Seu nome" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">WhatsApp / Telefone</label>
+          <input type="tel" id="reg-phone" required placeholder="(00) 00000-0000" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Crie um PIN / Senha (4 a 6 dígitos)</label>
+          <input type="password" id="reg-pin" maxlength="6" required placeholder="Escolha uma senha" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition shadow-md shadow-emerald-100">
+          Cadastrar e Agendar
+        </button>
+      </form>
+    </section>
+
+    <!-- ÁREA LOGADA DO CLIENTE (BARRA DE USUÁRIO) -->
+    <div id="user-session-bar" class="hidden flex justify-between items-center bg-indigo-50 border border-indigo-200 p-4 rounded-xl mb-6 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm" id="user-avatar">
+          U
+        </div>
+        <div>
+          <span class="text-xs text-indigo-500 font-semibold uppercase">Sessão Iniciada</span>
+          <h3 id="user-display-name" class="text-sm font-bold text-slate-800"></h3>
+        </div>
+      </div>
+      <button onclick="logoutClient()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold border border-rose-200 bg-white px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+        <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Sair
+      </button>
+    </div>
+
+    <!-- SEÇÃO 1: AGENDAMENTO (CLIENTE) -->
+    <section id="sec-client-booking" class="hidden space-y-6">
+      
+      <!-- PASSO 1: SERVIÇOS -->
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+          Escolha os Serviços
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="services-grid">
+          <!-- Injetado por JS -->
+        </div>
+      </div>
+
+      <!-- PASSO 2: DATA E HORÁRIO -->
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+          Selecione Data e Horário
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data</label>
+            <input type="date" id="booking-date" onchange="renderSlots()" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Resumo do Tempo Necessário</label>
+            <div id="duration-summary" class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-slate-600">
+              Selecione ao menos um serviço acima.
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Horários Disponíveis</label>
+          <div id="slots-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
+            <!-- Injetado por JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PASSO 3: CONFIRMAÇÃO -->
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
+          Finalizar Agendamento
+        </h2>
+        <form id="checkout-form" onsubmit="handleCheckout(event)" class="space-y-4">
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600">
+            Agendamento vinculado à conta de <b id="checkout-user-name" class="text-slate-800"></b> (<span id="checkout-user-phone"></span>).
+          </div>
+          <div class="flex justify-end">
+            <button type="submit" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3 rounded-lg transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-100">
+              <i data-lucide="check-circle" class="w-5 h-5"></i> Confirmar Agendamento
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- SEÇÃO 2: MEUS AGENDAMENTOS (CLIENTE) -->
+    <section id="sec-client-my-bookings" class="hidden space-y-6">
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+        <h3 class="text-lg font-bold text-slate-800 mb-4">Seus Horários Agendados</h3>
+        <div id="client-appointments-list" class="space-y-3">
+          <!-- Injetado por JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO 3: PAINEL DO GERENTE -->
+    <section id="sec-admin-panel" class="hidden space-y-6">
+      
+      <!-- LOGIN GERENTE -->
+      <div id="admin-login-card" class="max-w-md mx-auto bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+        <div class="text-center mb-6">
+          <div class="bg-slate-100 text-slate-700 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+            <i data-lucide="shield-check" class="w-6 h-6"></i>
+          </div>
+          <h2 class="text-xl font-bold text-slate-800">Acesso Restrito</h2>
+          <p class="text-xs text-slate-500">Digite a senha de gerente (Padrão: <b>admin123</b>)</p>
+        </div>
+        <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+          <div>
+            <input type="password" id="admin-pass" placeholder="Senha do Gerente" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg transition">
+            Entrar no Painel
+          </button>
+        </form>
+      </div>
+
+      <!-- DASHBOARD GERENTE -->
+      <div id="admin-dashboard" class="hidden space-y-6">
+        
+        <!-- HEADER ADMIN -->
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-slate-800">Painel do Gerente</h2>
+          <button onclick="logoutAdmin()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-medium transition">
+            Sair do Gerente
+          </button>
+        </div>
+
+        <!-- KPIS / DASHBOARD FINANCEIRO -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-bold text-slate-400 uppercase">Faturamento Estimado (Hoje)</span>
+            <div class="text-2xl font-extrabold text-indigo-600 mt-1" id="kpi-estimated-today">R$ 0,00</div>
+            <span class="text-xs text-slate-400">Total agendado</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-bold text-emerald-600 uppercase">Faturamento Realizado (Hoje)</span>
+            <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="kpi-realized-today">R$ 0,00</div>
+            <span class="text-xs text-slate-400">Atendimentos concluídos</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-bold text-slate-400 uppercase">Atendimentos de Hoje</span>
+            <div class="text-2xl font-extrabold text-slate-800 mt-1" id="kpi-count-today">0 / 0</div>
+            <span class="text-xs text-slate-400">Concluídos / Total</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-bold text-slate-400 uppercase">Faturamento do Mês</span>
+            <div class="text-2xl font-extrabold text-amber-500 mt-1" id="kpi-realized-month">R$ 0,00</div>
+            <span class="text-xs text-slate-400">Total realizado no mês</span>
+          </div>
+        </div>
+
+        <!-- GRÁFICO DE FATURAMENTO -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+          <h3 class="text-sm font-bold text-slate-700 uppercase mb-4">Estimado vs Realizado (Semana)</h3>
+          <div class="h-64">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+
+        <!-- TABELA DE AGENDAMENTOS DO GERENTE -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h3 class="text-lg font-bold text-slate-800">Agenda Geral de Clientes</h3>
+            <input type="date" id="admin-filter-date" onchange="renderAdminAppointments()" class="border border-slate-300 rounded-lg p-2 text-sm">
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+              <thead class="bg-slate-50 text-xs font-semibold text-slate-500 uppercase border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Horário</th>
+                  <th class="py-3 px-4">Cliente / Tel</th>
+                  <th class="py-3 px-4">Serviços</th>
+                  <th class="py-3 px-4">Valor Total</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4 text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="admin-appointments-tbody" class="divide-y divide-slate-100">
+                <!-- Injetado por JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- LÓGICA DO SISTEMA -->
+  <script>
+    const SERVICES = [
+      { id: 1, name: 'Corte de Cabelo', price: 40.00, duration: 30 },
+      { id: 2, name: 'Barba Completa', price: 30.00, duration: 30 },
+      { id: 3, name: 'Sobrancelha', price: 15.00, duration: 15 },
+      { id: 4, name: 'Coloração/Platinado', price: 90.00, duration: 60 }
+    ];
+
+    let selectedServiceIds = [];
+    let selectedSlot = null;
+    let loggedUser = null; // { name, phone }
+    let isAdmin = false;
+    let revenueChartInstance = null;
+
+    function getAppointments() {
+      return JSON.parse(localStorage.getItem('appointments') || '[]');
+    }
+    function saveAppointments(apps) {
+      localStorage.setItem('appointments', JSON.stringify(apps));
+    }
+    function getClients() {
+      return JSON.parse(localStorage.getItem('clients') || '{}');
+    }
+    function saveClients(clients) {
+      localStorage.setItem('clients', JSON.stringify(clients));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      document.getElementById('share-link-input').value = window.location.href;
+      
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('booking-date').value = todayStr;
+      document.getElementById('admin-filter-date').value = todayStr;
+
+      renderServices();
+      renderSlots();
+    });
+
+    function switchAuthTab(tab) {
+      if(tab === 'login') {
+        document.getElementById('form-login').classList.remove('hidden');
+        document.getElementById('form-register').classList.add('hidden');
+        document.getElementById('tab-btn-login').className = "w-1/2 py-2 border-b-2 border-indigo-600 text-indigo-600 font-bold";
+        document.getElementById('tab-btn-register').className = "w-1/2 py-2 text-slate-400 hover:text-slate-600 font-bold";
+        document.getElementById('auth-title').textContent = "Acesse sua Conta";
+      } else {
+        document.getElementById('form-login').classList.add('hidden');
+        document.getElementById('form-register').classList.remove('hidden');
+        document.getElementById('tab-btn-register').className = "w-1/2 py-2 border-b-2 border-emerald-600 text-emerald-600 font-bold";
+        document.getElementById('tab-btn-login').className = "w-1/2 py-2 text-slate-400 hover:text-slate-600 font-bold";
+        document.getElementById('auth-title').textContent = "Criar Nova Conta";
+      }
+    }
+
+    function handleAuthLogin(e) {
+      e.preventDefault();
+      const phone = document.getElementById('login-phone').value.trim();
+      const pin = document.getElementById('login-pin').value.trim();
+
+      const clients = getClients();
+      if(!clients[phone] || clients[phone].pin !== pin) {
+        alert('Telefone ou PIN incorretos.');
+        return;
+      }
+
+      loginUserSession(clients[phone].name, phone);
+    }
+
+    function handleAuthRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const pin = document.getElementById('reg-pin').value.trim();
+
+      const clients = getClients();
+      if(clients[phone]) {
+        alert('Este número já possui uma conta. Faça login.');
+        switchAuthTab('login');
+        return;
+      }
+
+      clients[phone] = { name, pin };
+      saveClients(clients);
+
+      loginUserSession(name, phone);
+    }
+
+    function loginUserSession(name, phone) {
+      loggedUser = { name, phone };
+      document.getElementById('sec-client-auth').classList.add('hidden');
+      document.getElementById('user-session-bar').classList.remove('hidden');
+      document.getElementById('user-display-name').textContent = name;
+      document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+
+      document.getElementById('checkout-user-name').textContent = name;
+      document.getElementById('checkout-user-phone').textContent = phone;
+
+      showSection('client-booking');
+    }
+
+    function logoutClient() {
+      loggedUser = null;
+      document.getElementById('user-session-bar').classList.add('hidden');
+      document.getElementById('sec-client-auth').classList.remove('hidden');
+      showSection('client-auth');
+    }
+
+    function showSection(section) {
+      ['client-auth', 'client-booking', 'client-my-bookings', 'admin-panel'].forEach(sec => {
+        const el = document.getElementById(`sec-${sec}`);
+        if(el) el.classList.add('hidden');
+      });
+
+      if(!loggedUser && (section === 'client-booking' || section === 'client-my-bookings')) {
+        document.getElementById('sec-client-auth').classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById(`sec-${section}`).classList.remove('hidden');
+
+      if(section === 'client-my-bookings') renderClientAppointments();
+      if(section === 'admin-panel' && isAdmin) renderAdminDashboard();
+    }
+
+    function renderServices() {
+      const container = document.getElementById('services-grid');
+      container.innerHTML = SERVICES.map(s => `
+        <label class="border border-slate-200 rounded-xl p-4 flex items-center justify-between cursor-pointer hover:border-indigo-500 transition bg-white shadow-sm">
+          <div class="flex items-center gap-3">
+            <input type="checkbox" value="${s.id}" onchange="toggleService(${s.id})" class="w-4 h-4 text-indigo-600 rounded">
             <div>
-                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Escolha a Nova Data</label>
-                <input type="date" id="reschedule-new-date" onchange="handleRescheduleDateChange()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-700">
+              <div class="font-bold text-slate-800 text-sm">${s.name}</div>
+              <div class="text-xs text-slate-400">${s.duration} min</div>
             </div>
+          </div>
+          <div class="font-bold text-indigo-600 text-sm">R$ ${s.price.toFixed(2)}</div>
+        </label>
+      `).join('');
+    }
 
-            <div id="reschedule-slots-container-wrapper">
-                <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Novos Horários Disponíveis</label>
-                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2" id="reschedule-slots-container">
-                    <p class="col-span-full text-xs text-slate-400 italic text-center">Selecione uma data para buscar os horários...</p>
-                </div>
-            </div>
+    function toggleService(id) {
+      if(selectedServiceIds.includes(id)) {
+        selectedServiceIds = selectedServiceIds.filter(item => item !== id);
+      } else {
+        selectedServiceIds.push(id);
+      }
+      updateDurationSummary();
+      renderSlots();
+    }
 
-            <div class="pt-4 border-t flex justify-end gap-2">
-                <button onclick="closeRescheduleModal()" class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Fechar</button>
-                <button onclick="confirmReschedule()" id="btn-confirm-reschedule" disabled class="px-4 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 rounded-xl transition shadow-md">Confirmar Novo Horário</button>
-            </div>
+    function getTotalDuration() {
+      return selectedServiceIds.reduce((sum, id) => {
+        const s = SERVICES.find(x => x.id === id);
+        return sum + (s ? s.duration : 0);
+      }, 0);
+    }
+
+    function getTotalPrice() {
+      return selectedServiceIds.reduce((sum, id) => {
+        const s = SERVICES.find(x => x.id === id);
+        return sum + (s ? s.price : 0);
+      }, 0);
+    }
+
+    function updateDurationSummary() {
+      const totalDur = getTotalDuration();
+      const totalPrice = getTotalPrice();
+      const div = document.getElementById('duration-summary');
+
+      if(selectedServiceIds.length === 0) {
+        div.innerHTML = 'Selecione ao menos um serviço acima.';
+        return;
+      }
+
+      div.innerHTML = `
+        <div class="flex justify-between items-center font-semibold text-slate-700">
+          <span>Duração Total: <b class="text-indigo-600">${totalDur} min</b></span>
+          <span>Valor Total: <b class="text-emerald-600">R$ ${totalPrice.toFixed(2)}</b></span>
         </div>
-    </div>
+      `;
+    }
 
-    <!-- Notification Toast -->
-    <div id="custom-toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 hidden transition transform translate-y-2 flex items-center gap-3">
-        <div id="toast-icon" class="text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
-        <span id="toast-message" class="text-sm font-semibold">Operação concluída com sucesso!</span>
-    </div>
+    function renderSlots() {
+      const dateVal = document.getElementById('booking-date').value;
+      const slotsContainer = document.getElementById('slots-grid');
+      const totalDur = getTotalDuration();
 
-    <script>
-        // --- BASE DE SERVIÇOS DO ESTABELECIMENTO ---
-        const DEFAULT_SERVICES = [
-            { id: 's1', name: 'Corte Masculino Stylist', duration: 30, price: 45.00, icon: 'fa-scissors', desc: 'Corte moderno ou tradicional com lavagem e finalização.' },
-            { id: 's2', name: 'Barba Completa + Toalha Quente', duration: 30, price: 35.00, icon: 'fa-user', desc: 'Modelagem, esfoliação e hidratação especial para barba.' },
-            { id: 's3', name: 'Combo Corte + Barba VIP', duration: 60, price: 70.00, icon: 'fa-crown', desc: 'Atendimento VIP completo de cabelo e barba.' },
-            { id: 's4', name: 'Coloração & Luzes', duration: 90, price: 120.00, icon: 'fa-palette', desc: 'Tinto profissional, luzes ou matização capilar.' },
-            { id: 's5', name: 'Tratamento & Hidratação', duration: 45, price: 60.00, icon: 'fa-droplet', desc: 'Recuperação dos fios com produtos premium.' },
-            { id: 's6', name: 'Manicure Express', duration: 30, price: 30.00, icon: 'fa-hand', desc: 'Cuidado completo das mãos e cutilagem.' }
-        ];
+      if(!dateVal || totalDur === 0) {
+        slotsContainer.innerHTML = '<p class="col-span-full text-xs text-slate-400 italic">Selecione os serviços e a data primeiro.</p>';
+        return;
+      }
 
-        // --- ESTADO DA APLICAÇÃO ---
-        let selectedServiceIds = [];
-        let selectedTimeSlot = null;
-        let selectedRescheduleTimeSlot = null;
-        let activeRescheduleAppointmentId = null;
-        let loggedClientPhone = null;
-        let isAdminLoggedIn = false;
+      const dayOfWeek = new Date(dateVal + 'T00:00:00').getDay();
+      if(dayOfWeek === 0) {
+        slotsContainer.innerHTML = '<p class="col-span-full text-xs text-rose-500 font-semibold">Fechado aos Domingos.</p>';
+        return;
+      }
 
-        let chartWeeklyInstance = null;
-        let chartPopularInstance = null;
+      const existingApps = getAppointments().filter(a => a.date === dateVal && a.status !== 'Cancelado');
+      const timeSlots = generateTimeSlots();
 
-        // INICIALIZAÇÃO
-        window.onload = function() {
-            setDefaultBookingDate();
-            renderServicesSelection();
-            renderServicesCards();
-            getAppointments();
-            getClients();
-            setupShareLinkInput();
-        };
+      slotsContainer.innerHTML = timeSlots.map(time => {
+        const isBlocked = checkSlotOverlap(time, totalDur, existingApps);
+        const isSelected = selectedSlot === time;
 
-        function setupShareLinkInput() {
-            const linkInput = document.getElementById('share-link-input');
-            if (linkInput) {
-                linkInput.value = window.location.href;
-            }
+        if(isBlocked) {
+          return `<button disabled class="p-2.5 rounded-lg border border-slate-200 bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed">
+            ${time}
+          </button>`;
         }
 
-        function openShareModal() {
-            setupShareLinkInput();
-            document.getElementById('share-modal').classList.remove('hidden');
+        return `<button onclick="selectSlot('${time}')" class="p-2.5 rounded-lg border ${isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-500'} text-xs font-bold transition">
+          ${time}
+        </button>`;
+      }).join('');
+    }
+
+    function generateTimeSlots() {
+      const times = [];
+      for(let m = 9 * 60; m < 18 * 60; m += 30) {
+        const hrs = Math.floor(m / 60).toString().padStart(2, '0');
+        const mins = (m % 60).toString().padStart(2, '0');
+        times.push(`${hrs}:${mins}`);
+      }
+      return times;
+    }
+
+    function checkSlotOverlap(startTime, duration, appointments) {
+      const [sh, sm] = startTime.split(':').map(Number);
+      const slotStart = sh * 60 + sm;
+      const slotEnd = slotStart + duration;
+
+      if(slotEnd > 18 * 60) return true;
+
+      return appointments.some(app => {
+        const [ah, am] = app.time.split(':').map(Number);
+        const appStart = ah * 60 + am;
+        const appEnd = appStart + app.duration;
+        return (slotStart < appEnd && slotEnd > appStart);
+      });
+    }
+
+    function selectSlot(time) {
+      selectedSlot = time;
+      renderSlots();
+    }
+
+    function handleCheckout(e) {
+      e.preventDefault();
+      const date = document.getElementById('booking-date').value;
+
+      if(selectedServiceIds.length === 0) return alert('Selecione pelo menos um serviço.');
+      if(!selectedSlot) return alert('Escolha um horário disponível.');
+
+      const selectedServs = SERVICES.filter(s => selectedServiceIds.includes(s.id));
+
+      const newApp = {
+        id: 'AG-' + Date.now().toString(36).toUpperCase(),
+        date,
+        time: selectedSlot,
+        duration: getTotalDuration(),
+        price: getTotalPrice(),
+        services: selectedServs.map(s => s.name),
+        clientName: loggedUser.name,
+        clientPhone: loggedUser.phone,
+        status: 'Pendente'
+      };
+
+      const apps = getAppointments();
+      apps.push(newApp);
+      saveAppointments(apps);
+
+      alert(`Agendamento realizado com sucesso para ${selectedSlot}!`);
+      
+      selectedServiceIds = [];
+      selectedSlot = null;
+      updateDurationSummary();
+      renderSlots();
+      showSection('client-my-bookings');
+    }
+
+    function renderClientAppointments() {
+      const container = document.getElementById('client-appointments-list');
+      const apps = getAppointments().filter(a => a.clientPhone === loggedUser.phone);
+
+      if(apps.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400">Nenhum agendamento encontrado para sua conta.</p>';
+        return;
+      }
+
+      container.innerHTML = apps.map(a => `
+        <div class="border border-slate-200 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold ${a.status === 'Concluido' ? 'text-emerald-600 bg-emerald-50' : a.status === 'Cancelado' ? 'text-rose-600 bg-rose-50' : 'text-amber-600 bg-amber-50'} px-2 py-0.5 rounded">
+                ${a.status}
+              </span>
+              <span class="text-xs text-slate-400">${a.id}</span>
+            </div>
+            <div class="font-bold text-slate-800 text-sm mt-1">${a.services.join(', ')}</div>
+            <div class="text-xs text-slate-500">${a.date} às <b>${a.time}</b> (Total: R$ ${a.price.toFixed(2)})</div>
+          </div>
+
+          ${a.status === 'Pendente' ? `
+            <button onclick="cancelByClient('${a.id}')" class="text-xs text-rose-600 hover:text-rose-800 font-semibold border border-rose-200 px-3 py-1.5 rounded-lg">
+              Cancelar
+            </button>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function cancelByClient(id) {
+      if(!confirm('Deseja realmente cancelar este agendamento?')) return;
+      const apps = getAppointments();
+      const app = apps.find(x => x.id === id);
+      if(app) {
+        app.status = 'Cancelado';
+        saveAppointments(apps);
+        renderClientAppointments();
+        renderSlots();
+      }
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      if(document.getElementById('admin-pass').value === 'admin123') {
+        isAdmin = true;
+        document.getElementById('admin-login-card').classList.add('hidden');
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        renderAdminDashboard();
+      } else {
+        alert('Senha incorreta.');
+      }
+    }
+
+    function logoutAdmin() {
+      isAdmin = false;
+      document.getElementById('admin-dashboard').classList.add('hidden');
+      document.getElementById('admin-login-card').classList.remove('hidden');
+    }
+
+    function renderAdminDashboard() {
+      renderAdminAppointments();
+      updateKPIsAndChart();
+    }
+
+    function renderAdminAppointments() {
+      const filterDate = document.getElementById('admin-filter-date').value;
+      const tbody = document.getElementById('admin-appointments-tbody');
+      const apps = getAppointments().filter(a => a.date === filterDate);
+
+      if(apps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-xs text-slate-400">Nenhum agendamento para este dia.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = apps.map(a => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-4 font-bold text-slate-700">${a.time}</td>
+          <td class="py-3 px-4">
+            <div class="font-semibold text-slate-800">${a.clientName}</div>
+            <div class="text-xs text-slate-400">${a.clientPhone}</div>
+          </td>
+          <td class="py-3 px-4 text-xs">${a.services.join(', ')}</td>
+          <td class="py-3 px-4 font-bold text-slate-700">R$ ${a.price.toFixed(2)}</td>
+          <td class="py-3 px-4">
+            <span class="text-xs font-bold ${a.status === 'Concluido' ? 'text-emerald-600 bg-emerald-50' : a.status === 'Cancelado' ? 'text-rose-600 bg-rose-50' : 'text-amber-600 bg-amber-50'} px-2 py-0.5 rounded">
+              ${a.status}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-center space-x-1">
+            ${a.status === 'Pendente' ? `
+              <button onclick="setAppStatus('${a.id}', 'Concluido')" class="bg-emerald-600 text-white text-xs px-2.5 py-1 rounded font-semibold hover:bg-emerald-700">
+                Concluir
+              </button>
+              <button onclick="setAppStatus('${a.id}', 'Cancelado')" class="bg-rose-600 text-white text-xs px-2.5 py-1 rounded font-semibold hover:bg-rose-700">
+                Cancelar
+              </button>
+            ` : '-'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function setAppStatus(id, newStatus) {
+      const apps = getAppointments();
+      const app = apps.find(a => a.id === id);
+      if(app) {
+        app.status = newStatus;
+        saveAppointments(apps);
+        renderAdminDashboard();
+        renderSlots();
+      }
+    }
+
+    function updateKPIsAndChart() {
+      const apps = getAppointments();
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      const todayApps = apps.filter(a => a.date === todayStr && a.status !== 'Cancelado');
+      const estimatedToday = todayApps.reduce((sum, a) => sum + a.price, 0);
+      const realizedToday = todayApps.filter(a => a.status === 'Concluido').reduce((sum, a) => sum + a.price, 0);
+      const countDone = todayApps.filter(a => a.status === 'Concluido').length;
+
+      const currentMonth = todayStr.substring(0, 7);
+      const realizedMonth = apps.filter(a => a.date.startsWith(currentMonth) && a.status === 'Concluido')
+                                .reduce((sum, a) => sum + a.price, 0);
+
+      document.getElementById('kpi-estimated-today').textContent = `R$ ${estimatedToday.toFixed(2)}`;
+      document.getElementById('kpi-realized-today').textContent = `R$ ${realizedToday.toFixed(2)}`;
+      document.getElementById('kpi-count-today').textContent = `${countDone} / ${todayApps.length}`;
+      document.getElementById('kpi-realized-month').textContent = `R$ ${realizedMonth.toFixed(2)}`;
+
+      renderChart(apps);
+    }
+
+    function renderChart(apps) {
+      const ctx = document.getElementById('revenueChart').getContext('2d');
+      if(revenueChartInstance) revenueChartInstance.destroy();
+
+      const labels = [];
+      const dataEstimated = [];
+      const dataRealized = [];
+
+      for(let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        labels.push(dateStr.split('-').slice(1).join('/'));
+
+        const dayApps = apps.filter(a => a.date === dateStr && a.status !== 'Cancelado');
+        dataEstimated.push(dayApps.reduce((s, a) => s + a.price, 0));
+        dataRealized.push(dayApps.filter(a => a.status === 'Concluido').reduce((s, a) => s + a.price, 0));
+      }
+
+      revenueChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Faturamento Estimado', data: dataEstimated, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.3 },
+            { label: 'Faturamento Realizado', data: dataRealized, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } }
         }
-
-        function closeShareModal() {
-            document.getElementById('share-modal').classList.add('hidden');
-        }
-
-        function shareToWhatsApp() {
-            const url = encodeURIComponent(window.location.href);
-            const text = encodeURIComponent('Olá! Faça seu agendamento online no Studio Beauty & Style acesse pelo link: ') + url;
-            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-        }
-
-        // LOCALSTORAGE - CLIENTES
-        function getClients() {
-            const data = localStorage.getItem('app_clients');
-            return data ? JSON.parse(data) : {};
-        }
-
-        function saveClients(clients) {
-            localStorage.setItem('app_clients', JSON.stringify(clients));
-        }
-
-        // LOCALSTORAGE - AGENDAMENTOS
-        function getAppointments() {
-            const data = localStorage.getItem('app_appointments');
-            if (data) return JSON.parse(data);
-
-            const todayStr = new Date().toISOString().split('T')[0];
-            const mocks = [
-                {
-                    id: 'apt-101',
-                    clientName: 'Carlos Eduardo',
-                    clientPhone: '(11) 98888-7777',
-                    date: todayStr,
-                    startTime: '09:00',
-                    endTime: '10:00',
-                    duration: 60,
-                    services: [DEFAULT_SERVICES[2]],
-                    totalPrice: 70.00,
-                    status: 'Confirmado',
-                    createdAt: new Date().toISOString()
-                }
-            ];
-            localStorage.setItem('app_appointments', JSON.stringify(mocks));
-            return mocks;
-        }
-
-        function saveAppointments(appointments) {
-            localStorage.setItem('app_appointments', JSON.stringify(appointments));
-            if (isAdminLoggedIn) {
-                renderAdminDashboard();
-            }
-        }
-
-        // CONTROLADOR DE ABAS
-        function switchTab(tabName) {
-            const tabs = ['booking', 'my-appointments', 'services', 'admin'];
-            
-            tabs.forEach(t => {
-                const el = document.getElementById(`tab-${t}`);
-                const navEl = document.getElementById(`nav-${t}`);
-                const mobNavEl = document.getElementById(`mob-nav-${t}`);
-
-                if (t === tabName) {
-                    if (el) el.classList.remove('hidden');
-                    if (navEl) {
-                        navEl.classList.add('bg-brand-600', 'text-white');
-                        navEl.classList.remove('text-slate-300', 'hover:bg-slate-800');
-                    }
-                    if (mobNavEl) {
-                        mobNavEl.classList.add('text-brand-500');
-                        mobNavEl.classList.remove('text-slate-400');
-                    }
-                } else {
-                    if (el) el.classList.add('hidden');
-                    if (navEl) {
-                        navEl.classList.remove('bg-brand-600', 'text-white');
-                        navEl.classList.add('text-slate-300', 'hover:bg-slate-800');
-                    }
-                    if (mobNavEl) {
-                        mobNavEl.classList.remove('text-brand-500');
-                        mobNavEl.classList.add('text-slate-400');
-                    }
-                }
-            });
-
-            if (tabName === 'admin' && isAdminLoggedIn) {
-                renderAdminDashboard();
-            }
-        }
-
-        function setDefaultBookingDate() {
-            const dateInput = document.getElementById('booking-date');
-            const today = new Date();
-            if (today.getDay() === 0) today.setDate(today.getDate() + 1); // se domingo pula pra segunda
-            dateInput.value = today.toISOString().split('T')[0];
-            dateInput.min = new Date().toISOString().split('T')[0];
-        }
-
-        function renderServicesSelection() {
-            const container = document.getElementById('services-selection-container');
-            container.innerHTML = '';
-
-            DEFAULT_SERVICES.forEach(service => {
-                const isSelected = selectedServiceIds.includes(service.id);
-                const card = document.createElement('div');
-                card.className = `p-4 rounded-xl border transition cursor-pointer flex justify-between items-start ${
-                    isSelected 
-                        ? 'border-brand-600 bg-brand-50/60 ring-2 ring-brand-500/20' 
-                        : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`;
-                card.onclick = () => toggleServiceSelection(service.id);
-
-                card.innerHTML = `
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid ${service.icon} text-brand-600 text-sm"></i>
-                            <span class="font-bold text-sm text-slate-800">${service.name}</span>
-                        </div>
-                        <p class="text-xs text-slate-500">${service.desc}</p>
-                        <div class="flex items-center gap-3 text-xs pt-1">
-                            <span class="font-bold text-slate-800">R$ ${service.price.toFixed(2).replace('.', ',')}</span>
-                            <span class="text-slate-400">• ${service.duration} min</span>
-                        </div>
-                    </div>
-                    <div class="w-5 h-5 rounded-full border flex items-center justify-center text-xs ${isSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300'}">
-                        ${isSelected ? '<i class="fa-solid fa-check"></i>' : ''}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function renderServicesCards() {
-            const container = document.getElementById('services-cards-grid');
-            container.innerHTML = '';
-
-            DEFAULT_SERVICES.forEach(service => {
-                const card = document.createElement('div');
-                card.className = "bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4";
-                card.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center mb-3">
-                            <i class="fa-solid ${service.icon}"></i>
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-base">${service.name}</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed">${service.desc}</p>
-                    </div>
-                    <div class="border-t pt-3 flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Investimento</span>
-                            <span class="text-lg font-black text-brand-600">R$ ${service.price.toFixed(2).replace('.', ',')}</span>
-                        </div>
-                        <span class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-semibold">${service.duration} min</span>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function toggleServiceSelection(serviceId) {
-            if (selectedServiceIds.includes(serviceId)) {
-                selectedServiceIds = selectedServiceIds.filter(id => id !== serviceId);
-            } else {
-                selectedServiceIds.push(serviceId);
-            }
-            selectedTimeSlot = null;
-            renderServicesSelection();
-            updateBookingSummary();
-            calculateAvailableTimeSlots();
-        }
-
-        function updateBookingSummary() {
-            const selectedServices = DEFAULT_SERVICES.filter(s => selectedServiceIds.includes(s.id));
-            const totalDuration = selectedServices.reduce((acc, s) => acc + s.duration, 0);
-            const totalPrice = selectedServices.reduce((acc, s) => acc + s.price, 0);
-
-            document.getElementById('services-count').innerText = `${selectedServices.length} selecionados`;
-            document.getElementById('total-duration-display').innerText = `${totalDuration} min`;
-
-            const summaryList = document.getElementById('summary-services-list');
-            if (selectedServices.length === 0) {
-                summaryList.innerHTML = '<p class="text-xs text-slate-400 italic">Nenhum serviço selecionado ainda.</p>';
-            } else {
-                summaryList.innerHTML = selectedServices.map(s => `
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-700 font-medium">${s.name}</span>
-                        <span class="text-slate-900 font-bold">R$ ${s.price.toFixed(2).replace('.', ',')}</span>
-                    </div>
-                `).join('');
-            }
-
-            const bookingDateVal = document.getElementById('booking-date').value;
-            if (bookingDateVal) {
-                const parts = bookingDateVal.split('-');
-                document.getElementById('summary-date').innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
-            }
-
-            document.getElementById('summary-duration').innerText = `${totalDuration} min`;
-            document.getElementById('summary-total').innerText = `R$ ${totalPrice.toFixed(2).replace('.', ',')}`;
-
-            if (selectedTimeSlot) {
-                document.getElementById('summary-time').innerText = selectedTimeSlot.startTime;
-                document.getElementById('summary-endtime').innerText = selectedTimeSlot.endTime;
-            } else {
-                document.getElementById('summary-time').innerText = '--:--';
-                document.getElementById('summary-endtime').innerText = '--:--';
-            }
-        }
-
-        function handleDateChange() {
-            selectedTimeSlot = null;
-            updateBookingSummary();
-            calculateAvailableTimeSlots();
-        }
-
-        function checkExistingPhone() {
-            const phone = document.getElementById('client-phone').value.trim();
-            const clients = getClients();
-            const banner = document.getElementById('existing-user-banner');
-            const nameInput = document.getElementById('client-name');
-
-            if (clients[phone]) {
-                banner.classList.remove('hidden');
-                nameInput.value = clients[phone].name;
-            } else {
-                banner.classList.add('hidden');
-            }
-        }
-
-        function calculateAvailableTimeSlots() {
-            const dateVal = document.getElementById('booking-date').value;
-            const wrapper = document.getElementById('time-slots-wrapper');
-            const placeholder = document.getElementById('time-slots-placeholder');
-            const slotsContainer = document.getElementById('time-slots-container');
-
-            const selectedServices = DEFAULT_SERVICES.filter(s => selectedServiceIds.includes(s.id));
-            const totalDuration = selectedServices.reduce((acc, s) => acc + s.duration, 0);
-
-            if (!dateVal || totalDuration === 0) {
-                wrapper.classList.add('hidden');
-                placeholder.classList.remove('hidden');
-                placeholder.innerHTML = 'Selecione pelo menos 1 serviço e uma data válida para calcular os horários livres.';
-                return;
-            }
-
-            const dateObj = new Date(dateVal + 'T00:00:00');
-            if (dateObj.getDay() === 0) {
-                wrapper.classList.add('hidden');
-                placeholder.classList.remove('hidden');
-                placeholder.innerHTML = '<span class="text-rose-500 font-semibold">Fechados aos domingos. Selecione de Segunda a Sábado.</span>';
-                return;
-            }
-
-            wrapper.classList.remove('hidden');
-            placeholder.classList.add('hidden');
-            slotsContainer.innerHTML = '';
-
-            const openMinutes = 9 * 60; // 09:00
-            const closeMinutes = 18 * 60; // 18:00
-
-            const appointments = getAppointments();
-            const activeToday = appointments.filter(a => a.date === dateVal && a.status === 'Confirmado');
-
-            for (let time = openMinutes; time < closeMinutes; time += 30) {
-                const startTimeStr = minutesToTimeString(time);
-                const endTimeMinutes = time + totalDuration;
-                const endTimeStr = minutesToTimeString(endTimeMinutes);
-
-                const fitsOpening = endTimeMinutes <= closeMinutes;
-
-                const hasConflict = activeToday.some(appt => {
-                    const apptStart = timeStringToMinutes(appt.startTime);
-                    const apptEnd = timeStringToMinutes(appt.endTime);
-                    return (time < apptEnd && endTimeMinutes > apptStart);
-                });
-
-                const isAvailable = fitsOpening && !hasConflict;
-                const isSelected = selectedTimeSlot && selectedTimeSlot.startTime === startTimeStr;
-
-                const slotBtn = document.createElement('button');
-                slotBtn.type = 'button';
-                slotBtn.disabled = !isAvailable;
-                slotBtn.className = `py-2.5 px-1 text-xs font-bold rounded-xl transition flex flex-col items-center justify-center border ${
-                    !isAvailable
-                        ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50'
-                        : isSelected
-                        ? 'bg-brand-600 text-white border-brand-600 shadow-md ring-2 ring-brand-500/30'
-                        : 'bg-white text-slate-700 border-slate-300 hover:border-brand-500 hover:text-brand-600'
-                }`;
-
-                slotBtn.innerHTML = `
-                    <span>${startTimeStr}</span>
-                    <span class="text-[9px] font-normal ${isSelected ? 'text-brand-100' : 'text-slate-400'}">até ${endTimeStr}</span>
-                `;
-
-                if (isAvailable) {
-                    slotBtn.onclick = () => {
-                        selectedTimeSlot = { startTime: startTimeStr, endTime: endTimeStr };
-                        calculateAvailableTimeSlots();
-                        updateBookingSummary();
-                    };
-                }
-
-                slotsContainer.appendChild(slotBtn);
-            }
-        }
-
-        function minutesToTimeString(minutes) {
-            const h = Math.floor(minutes / 60);
-            const m = minutes % 60;
-            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-        }
-
-        function timeStringToMinutes(timeStr) {
-            const [h, m] = timeStr.split(':').map(Number);
-            return h * 60 + m;
-        }
-
-        // SUBMIT AGENDAMENTO E SEGURANÇA CLIENTE
-        function submitBooking() {
-            const clientName = document.getElementById('client-name').value.trim();
-            const clientPhone = document.getElementById('client-phone').value.trim();
-            const clientPin = document.getElementById('client-pin').value.trim();
-            const bookingDate = document.getElementById('booking-date').value;
-
-            if (selectedServiceIds.length === 0) {
-                showToast('Selecione ao menos um serviço.', 'error');
-                return;
-            }
-            if (!bookingDate) {
-                showToast('Selecione uma data para o agendamento.', 'error');
-                return;
-            }
-            if (!selectedTimeSlot) {
-                showToast('Escolha um horário disponível para atendimento.', 'error');
-                return;
-            }
-            if (!clientName || !clientPhone) {
-                showToast('Preencha seu Nome e Celular/WhatsApp.', 'error');
-                return;
-            }
-            if (!clientPin || clientPin.length < 4) {
-                showToast('Crie uma Senha/PIN com pelo menos 4 dígitos.', 'error');
-                return;
-            }
-
-            const clients = getClients();
-
-            // Se o usuário já existe, valida o PIN
-            if (clients[clientPhone]) {
-                if (clients[clientPhone].pin !== clientPin) {
-                    showToast('Senha/PIN incorreta para este número!', 'error');
-                    return;
-                }
-            } else {
-                // Cadastra novo cliente
-                clients[clientPhone] = { name: clientName, pin: clientPin };
-                saveClients(clients);
-            }
-
-            const selectedServices = DEFAULT_SERVICES.filter(s => selectedServiceIds.includes(s.id));
-            const totalDuration = selectedServices.reduce((acc, s) => acc + s.duration, 0);
-            const totalPrice = selectedServices.reduce((acc, s) => acc + s.price, 0);
-
-            const newAppointment = {
-                id: 'apt-' + Date.now(),
-                clientName,
-                clientPhone,
-                date: bookingDate,
-                startTime: selectedTimeSlot.startTime,
-                endTime: selectedTimeSlot.endTime,
-                duration: totalDuration,
-                services: selectedServices,
-                totalPrice,
-                status: 'Confirmado',
-                createdAt: new Date().toISOString()
-            };
-
-            const appointments = getAppointments();
-            appointments.push(newAppointment);
-            saveAppointments(appointments);
-
-            showToast('Agendamento realizado com sucesso!', 'success');
-
-            // Autentica e redireciona para Meus Agendamentos
-            loggedClientPhone = clientPhone;
-            renderAuthenticatedClientPanel();
-            switchTab('my-appointments');
-
-            // Reseta formulário
-            selectedServiceIds = [];
-            selectedTimeSlot = null;
-            document.getElementById('client-pin').value = '';
-            renderServicesSelection();
-            updateBookingSummary();
-            calculateAvailableTimeSlots();
-        }
-
-        function loginClient() {
-            const phone = document.getElementById('login-phone').value.trim();
-            const pin = document.getElementById('login-pin').value.trim();
-
-            if (!phone || !pin) {
-                showToast('Informe Celular e Senha/PIN.', 'error');
-                return;
-            }
-
-            const clients = getClients();
-            const user = clients[phone];
-
-            if (!user) {
-                showToast('Nenhum cadastro encontrado para este celular.', 'error');
-                return;
-            }
-
-            if (user.pin !== pin) {
-                showToast('Senha/PIN incorreta!', 'error');
-                return;
-            }
-
-            loggedClientPhone = phone;
-            renderAuthenticatedClientPanel();
-            showToast('Login efetuado com sucesso!', 'success');
-        }
-
-        function logoutClient() {
-            loggedClientPhone = null;
-            document.getElementById('login-phone').value = '';
-            document.getElementById('login-pin').value = '';
-            document.getElementById('client-login-box').classList.remove('hidden');
-            document.getElementById('client-authenticated-panel').classList.add('hidden');
-        }
-
-        function renderAuthenticatedClientPanel() {
-            if (!loggedClientPhone) return;
-
-            const clients = getClients();
-            const user = clients[loggedClientPhone];
-
-            document.getElementById('logged-client-name').innerText = user.name;
-            document.getElementById('logged-client-phone').innerText = loggedClientPhone;
-
-            document.getElementById('client-login-box').classList.add('hidden');
-            document.getElementById('client-authenticated-panel').classList.remove('hidden');
-
-            const appointments = getAppointments();
-            const userAppts = appointments.filter(a => a.clientPhone === loggedClientPhone);
-            const container = document.getElementById('client-appointments-list');
-            container.innerHTML = '';
-
-            if (userAppts.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center bg-white p-8 rounded-2xl border border-slate-200 text-slate-500 text-sm">
-                        Você ainda não possui nenhum agendamento realizado.
-                    </div>
-                `;
-                return;
-            }
-
-            userAppts.sort((a, b) => new Date(b.date + 'T' + b.startTime) - new Date(a.date + 'T' + a.startTime));
-
-            userAppts.forEach(appt => {
-                const dateParts = appt.date.split('-');
-                const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-                
-                let statusBadge = '';
-                if (appt.status === 'Confirmado') {
-                    statusBadge = '<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">Confirmado</span>';
-                } else if (appt.status === 'Concluído') {
-                    statusBadge = '<span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Concluído</span>';
-                } else {
-                    statusBadge = '<span class="bg-rose-100 text-rose-800 text-xs font-bold px-3 py-1 rounded-full">Cancelado</span>';
-                }
-
-                const servicesText = appt.services.map(s => s.name).join(', ');
-
-                const card = document.createElement('div');
-                card.className = "bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4";
-                card.innerHTML = `
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-2">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-calendar-day text-brand-600"></i>
-                                <span class="font-bold text-slate-800 text-base">${formattedDate}</span>
-                                <span class="text-slate-400">•</span>
-                                <span class="font-bold text-slate-700">${appt.startTime} às ${appt.endTime}</span>
-                            </div>
-                        </div>
-                        <div>${statusBadge}</div>
-                    </div>
-
-                    <div class="space-y-1.5 text-xs text-slate-600">
-                        <div><strong class="text-slate-800">Serviços:</strong> ${servicesText}</div>
-                        <div><strong class="text-slate-800">Duração Acumulada:</strong> ${appt.duration} minutos</div>
-                        <div><strong class="text-slate-800">Valor Total:</strong> <span class="text-brand-600 font-extrabold text-sm">R$ ${appt.totalPrice.toFixed(2).replace('.', ',')}</span></div>
-                    </div>
-
-                    ${appt.status === 'Confirmado' ? `
-                        <div class="flex flex-wrap gap-2 border-t pt-3 justify-end">
-                            <button onclick="openRescheduleModal('${appt.id}')" class="px-3.5 py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-arrows-rotate"></i> Trocar Horário
-                            </button>
-                            <button onclick="cancelAppointment('${appt.id}')" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-trash-can"></i> Cancelar Agendamento
-                            </button>
-                        </div>
-                    ` : ''}
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function cancelAppointment(appointmentId) {
-            if (!confirm('Deseja realmente cancelar seu agendamento? O horário ficará livre para outros clientes.')) return;
-
-            const appointments = getAppointments();
-            const index = appointments.findIndex(a => a.id === appointmentId);
-            if (index !== -1) {
-                appointments[index].status = 'Cancelado';
-                saveAppointments(appointments);
-                showToast('Agendamento cancelado!', 'info');
-                renderAuthenticatedClientPanel();
-            }
-        }
-
-        function openRescheduleModal(appointmentId) {
-            activeRescheduleAppointmentId = appointmentId;
-            selectedRescheduleTimeSlot = null;
-
-            const appointments = getAppointments();
-            const appt = appointments.find(a => a.id === appointmentId);
-            if (!appt) return;
-
-            const modal = document.getElementById('reschedule-modal');
-            const details = document.getElementById('reschedule-details');
-            const dateInput = document.getElementById('reschedule-new-date');
-
-            details.innerHTML = `
-                <p><strong>Serviços:</strong> ${appt.services.map(s => s.name).join(', ')} (${appt.duration} min)</p>
-                <p><strong>Horário Atual:</strong> ${appt.date} às ${appt.startTime}</p>
-            `;
-
-            dateInput.value = appt.date;
-            dateInput.min = new Date().toISOString().split('T')[0];
-
-            document.getElementById('btn-confirm-reschedule').disabled = true;
-            modal.classList.remove('hidden');
-
-            handleRescheduleDateChange();
-        }
-
-        function closeRescheduleModal() {
-            document.getElementById('reschedule-modal').classList.add('hidden');
-            activeRescheduleAppointmentId = null;
-            selectedRescheduleTimeSlot = null;
-        }
-
-        function handleRescheduleDateChange() {
-            const dateVal = document.getElementById('reschedule-new-date').value;
-            const container = document.getElementById('reschedule-slots-container');
-            const confirmBtn = document.getElementById('btn-confirm-reschedule');
-
-            confirmBtn.disabled = true;
-            selectedRescheduleTimeSlot = null;
-
-            if (!activeRescheduleAppointmentId || !dateVal) return;
-
-            const appointments = getAppointments();
-            const appt = appointments.find(a => a.id === activeRescheduleAppointmentId);
-            if (!appt) return;
-
-            const dateObj = new Date(dateVal + 'T00:00:00');
-            if (dateObj.getDay() === 0) {
-                container.innerHTML = `<p class="col-span-full text-xs text-rose-500 font-bold text-center py-2">Fechados aos domingos.</p>`;
-                return;
-            }
-
-            container.innerHTML = '';
-
-            const totalDuration = appt.duration;
-            const openMinutes = 9 * 60;
-            const closeMinutes = 18 * 60;
-
-            const activeApptsToday = appointments.filter(a => 
-                a.date === dateVal && 
-                a.status === 'Confirmado' && 
-                a.id !== activeRescheduleAppointmentId
-            );
-
-            for (let time = openMinutes; time < closeMinutes; time += 30) {
-                const startTimeStr = minutesToTimeString(time);
-                const endTimeMinutes = time + totalDuration;
-                const endTimeStr = minutesToTimeString(endTimeMinutes);
-
-                const fitsOpening = endTimeMinutes <= closeMinutes;
-                const hasConflict = activeApptsToday.some(a => {
-                    const aStart = timeStringToMinutes(a.startTime);
-                    const aEnd = timeStringToMinutes(a.endTime);
-                    return (time < aEnd && endTimeMinutes > aStart);
-                });
-
-                const isAvailable = fitsOpening && !hasConflict;
-                const isSelected = selectedRescheduleTimeSlot && selectedRescheduleTimeSlot.startTime === startTimeStr;
-
-                const slotBtn = document.createElement('button');
-                slotBtn.type = 'button';
-                slotBtn.disabled = !isAvailable;
-                slotBtn.className = `py-2 px-1 text-xs font-bold rounded-xl transition flex flex-col items-center justify-center border ${
-                    !isAvailable
-                        ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50'
-                        : isSelected
-                        ? 'bg-brand-600 text-white border-brand-600 shadow-md'
-                        : 'bg-white text-slate-700 border-slate-300 hover:border-brand-500'
-                }`;
-
-                slotBtn.innerHTML = `
-                    <span>${startTimeStr}</span>
-                    <span class="text-[9px] font-normal ${isSelected ? 'text-brand-100' : 'text-slate-400'}">até ${endTimeStr}</span>
-                `;
-
-                if (isAvailable) {
-                    slotBtn.onclick = () => {
-                        selectedRescheduleTimeSlot = { startTime: startTimeStr, endTime: endTimeStr };
-                        handleRescheduleDateChange();
-                        confirmBtn.disabled = false;
-                    };
-                }
-
-                container.appendChild(slotBtn);
-            }
-        }
-
-        function confirmReschedule() {
-            if (!activeRescheduleAppointmentId || !selectedRescheduleTimeSlot) return;
-
-            const newDate = document.getElementById('reschedule-new-date').value;
-            const appointments = getAppointments();
-            const index = appointments.findIndex(a => a.id === activeRescheduleAppointmentId);
-
-            if (index !== -1) {
-                appointments[index].date = newDate;
-                appointments[index].startTime = selectedRescheduleTimeSlot.startTime;
-                appointments[index].endTime = selectedRescheduleTimeSlot.endTime;
-
-                saveAppointments(appointments);
-                showToast('Horário alterado com sucesso!', 'success');
-                closeRescheduleModal();
-                renderAuthenticatedClientPanel();
-            }
-        }
-
-        function loginAdmin() {
-            const pwd = document.getElementById('admin-password').value;
-            if (pwd === 'admin123') {
-                isAdminLoggedIn = true;
-                document.getElementById('admin-login-card').classList.add('hidden');
-                document.getElementById('admin-dashboard-content').classList.remove('hidden');
-                renderAdminDashboard();
-            } else {
-                showToast('Senha incorreta! Tente admin123', 'error');
-            }
-        }
-
-        function logoutAdmin() {
-            isAdminLoggedIn = false;
-            document.getElementById('admin-password').value = '';
-            document.getElementById('admin-login-card').classList.remove('hidden');
-            document.getElementById('admin-dashboard-content').classList.add('hidden');
-        }
-
-        function renderAdminDashboard() {
-            if (!isAdminLoggedIn) return;
-
-            const appointments = getAppointments();
-            const todayStr = new Date().toISOString().split('T')[0];
-
-            // KPIs
-            const todayAppts = appointments.filter(a => a.date === todayStr && a.status !== 'Cancelado');
-            const todayRev = todayAppts.reduce((acc, a) => acc + a.totalPrice, 0);
-
-            const now = new Date();
-            const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-            const weekAppts = appointments.filter(a => {
-                const apptDate = new Date(a.date + 'T00:00:00');
-                return apptDate >= sevenDaysAgo && a.status !== 'Cancelado';
-            });
-            const weekRev = weekAppts.reduce((acc, a) => acc + a.totalPrice, 0);
-
-            const monthAppts = appointments.filter(a => {
-                const apptDate = new Date(a.date + 'T00:00:00');
-                return apptDate.getMonth() === now.getMonth() && apptDate.getFullYear() === now.getFullYear() && a.status !== 'Cancelado';
-            });
-            const monthRev = monthAppts.reduce((acc, a) => acc + a.totalPrice, 0);
-
-            const cancelledCount = appointments.filter(a => a.status === 'Cancelado').length;
-
-            document.getElementById('kpi-today-rev').innerText = `R$ ${todayRev.toFixed(2).replace('.', ',')}`;
-            document.getElementById('kpi-today-count').innerText = `${todayAppts.length} atendimentos`;
-
-            document.getElementById('kpi-week-rev').innerText = `R$ ${weekRev.toFixed(2).replace('.', ',')}`;
-            document.getElementById('kpi-week-count').innerText = `${weekAppts.length} atendimentos`;
-
-            document.getElementById('kpi-month-rev').innerText = `R$ ${monthRev.toFixed(2).replace('.', ',')}`;
-            document.getElementById('kpi-month-count').innerText = `${monthAppts.length} atendimentos`;
-
-            document.getElementById('kpi-cancelled-count').innerText = cancelledCount;
-
-            renderAdminAppointmentsTable();
-            renderAdminCharts(appointments);
-        }
-
-        function renderAdminAppointmentsTable() {
-            const appointments = getAppointments();
-            const filterDate = document.getElementById('admin-filter-date').value;
-            const filterStatus = document.getElementById('admin-filter-status').value;
-            const tbody = document.getElementById('admin-table-body');
-
-            let filtered = [...appointments];
-
-            if (filterDate) filtered = filtered.filter(a => a.date === filterDate);
-            if (filterStatus !== 'ALL') filtered = filtered.filter(a => a.status === filterStatus);
-
-            filtered.sort((a, b) => new Date(b.date + 'T' + b.startTime) - new Date(a.date + 'T' + a.startTime));
-
-            tbody.innerHTML = '';
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400 italic text-xs">Nenhum agendamento para o filtro.</td></tr>`;
-                return;
-            }
-
-            filtered.forEach(appt => {
-                const dateParts = appt.date.split('-');
-                const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-                const servicesList = appt.services.map(s => s.name).join(', ');
-
-                let statusClass = '';
-                if (appt.status === 'Confirmado') statusClass = 'bg-emerald-100 text-emerald-800';
-                else if (appt.status === 'Concluído') statusClass = 'bg-blue-100 text-blue-800';
-                else statusClass = 'bg-rose-100 text-rose-800';
-
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                tr.innerHTML = `
-                    <td class="py-3 px-4">
-                        <div class="font-bold text-slate-800">${appt.clientName}</div>
-                        <div class="text-xs text-slate-400 font-medium">${appt.clientPhone}</div>
-                    </td>
-                    <td class="py-3 px-4">
-                        <div class="font-bold text-slate-700">${formattedDate}</div>
-                        <div class="text-xs text-slate-500">${appt.startTime} - ${appt.endTime}</div>
-                    </td>
-                    <td class="py-3 px-4 max-w-xs truncate text-xs text-slate-600" title="${servicesList}">
-                        ${servicesList}
-                    </td>
-                    <td class="py-3 px-4 font-black text-slate-800">
-                        R$ ${appt.totalPrice.toFixed(2).replace('.', ',')}
-                    </td>
-                    <td class="py-3 px-4">
-                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${statusClass}">${appt.status}</span>
-                    </td>
-                    <td class="py-3 px-4 text-right space-x-1">
-                        <button onclick="sendWhatsAppNotification('${appt.id}')" title="Chamar WhatsApp" class="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition inline-flex items-center text-xs">
-                            <i class="fa-brands fa-whatsapp"></i>
-                        </button>
-                        ${appt.status === 'Confirmado' ? `
-                            <button onclick="changeStatus('${appt.id}', 'Concluído')" title="Concluir" class="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition inline-flex items-center text-xs">
-                                <i class="fa-solid fa-check"></i>
-                            </button>
-                            <button onclick="changeStatus('${appt.id}', 'Cancelado')" title="Cancelar" class="p-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg transition inline-flex items-center text-xs">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
-                        ` : ''}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function changeStatus(appointmentId, newStatus) {
-            const appointments = getAppointments();
-            const index = appointments.findIndex(a => a.id === appointmentId);
-            if (index !== -1) {
-                appointments[index].status = newStatus;
-                saveAppointments(appointments);
-                showToast(`Status alterado para ${newStatus}`, 'info');
-                renderAdminDashboard();
-            }
-        }
-
-        function sendWhatsAppNotification(appointmentId) {
-            const appointments = getAppointments();
-            const appt = appointments.find(a => a.id === appointmentId);
-            if (!appt) return;
-
-            const phone = appt.clientPhone.replace(/\D/g, '');
-            const dateParts = appt.date.split('-');
-            const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-            
-            const text = `Olá ${appt.clientName}! Passando para confirmar seu agendamento para ${formattedDate} às ${appt.startTime} (${appt.duration}min). Te aguardamos!`;
-            window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(text)}`, '_blank');
-        }
-
-        function copySiteLink() {
-            const currentUrl = window.location.href;
-            const tempInput = document.createElement('input');
-            tempInput.style.position = 'absolute';
-            tempInput.style.left = '-9999px';
-            tempInput.value = currentUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            
-            try {
-                document.execCommand('copy');
-                showToast('Link do site copiado para a área de transferência!', 'success');
-            } catch (err) {
-                showToast('Erro ao copiar o link.', 'error');
-            } finally {
-                document.body.removeChild(tempInput);
-            }
-        }
-
-        function renderAdminCharts(appointments) {
-            // Chart 1: Evolução Semanal
-            const daysLabels = [];
-            const daysCounts = [];
-
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                const dateStr = d.toISOString().split('T')[0];
-                const parts = dateStr.split('-');
-                daysLabels.push(`${parts[2]}/${parts[1]}`);
-
-                const count = appointments.filter(a => a.date === dateStr && a.status !== 'Cancelado').length;
-                daysCounts.push(count);
-            }
-
-            const ctxWeekly = document.getElementById('chart-appointments-weekly').getContext('2d');
-            if (chartWeeklyInstance) chartWeeklyInstance.destroy();
-
-            chartWeeklyInstance = new Chart(ctxWeekly, {
-                type: 'line',
-                data: {
-                    labels: daysLabels,
-                    datasets: [{
-                        label: 'Atendimentos',
-                        data: daysCounts,
-                        borderColor: '#0284c7',
-                        backgroundColor: 'rgba(2, 132, 199, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#0284c7'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-                }
-            });
-
-            // Chart 2: Serviços Populares
-            const serviceMap = {};
-            appointments.filter(a => a.status !== 'Cancelado').forEach(a => {
-                a.services.forEach(s => {
-                    serviceMap[s.name] = (serviceMap[s.name] || 0) + 1;
-                });
-            });
-
-            const popularLabels = Object.keys(serviceMap);
-            const popularCounts = Object.values(serviceMap);
-
-            const ctxPopular = document.getElementById('chart-popular-services').getContext('2d');
-            if (chartPopularInstance) chartPopularInstance.destroy();
-
-            chartPopularInstance = new Chart(ctxPopular, {
-                type: 'doughnut',
-                data: {
-                    labels: popularLabels.length > 0 ? popularLabels : ['Nenhum registro'],
-                    datasets: [{
-                        data: popularCounts.length > 0 ? popularCounts : [1],
-                        backgroundColor: ['#0284c7', '#10b981', '#6366f1', '#f59e0b', '#ec4899', '#8b5cf6']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
-                    }
-                }
-            });
-        }
-
-        // TOAST ALERT
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('custom-toast');
-            const msgEl = document.getElementById('toast-message');
-            const iconEl = document.getElementById('toast-icon');
-
-            msgEl.innerText = message;
-
-            if (type === 'error') {
-                iconEl.className = 'text-rose-400';
-                iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
-            } else if (type === 'info') {
-                iconEl.className = 'text-blue-400';
-                iconEl.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
-            } else {
-                iconEl.className = 'text-emerald-400';
-                iconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
-            }
-
-            toast.classList.remove('hidden', 'translate-y-2');
-
-            setTimeout(() => {
-                toast.classList.add('hidden', 'translate-y-2');
-            }, 3500);
-        }
-    </script>
+      });
+    }
+
+    function copyShareLink() {
+      const input = document.getElementById('share-link-input');
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      alert('Link copiado!');
+    }
+  </script>
 </body>
 </html>
